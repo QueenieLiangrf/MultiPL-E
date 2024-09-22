@@ -134,7 +134,7 @@ class Model:
 
 def automodel_partial_arg_parser():
     """
-    This is also used by peftmodel.py.
+    This is also used by peftmodel.py.argparse 模块，该模块常用于处理命令行输入参数。代码中的意图是定义一个函数，该函数创建一个 ArgumentParser 对象并向其添加一些参数。
     """
     args = partial_arg_parser()
     args.add_argument("--name", type=str, required=True)
@@ -165,12 +165,20 @@ def main():
     if args.flash_attention2:
         model_kwargs["attn_implementation"] = "flash_attention_2"
 
-    model = Model(
-        args.name, args.revision,
-        model_kwargs=model_kwargs,
-        tokenizer_name=args.tokenizer_name,
-        tokenizer_revision=args.tokenizer_revision,
-    )
+    # model = Model(
+    #     args.name, args.revision,
+    #     model_kwargs=model_kwargs,
+    #     tokenizer_name=args.tokenizer_name,
+    #     tokenizer_revision=args.tokenizer_revision,
+    # )
+    from peft import PeftModel, PeftConfig
+    from transformers import AutoModelForCausalLM
+    
+    config = PeftConfig.from_pretrained("QueenieFi/starcoderbase-1b-go-v4")
+    base_model = AutoModelForCausalLM.from_pretrained("bigcode/starcoderbase-1b", token="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")
+    base_model.resize_token_embeddings(49154)
+    model = PeftModel.from_pretrained(base_model, "QueenieFi/starcoderbase-1b-go-v4")
+    
     name = do_name_override(args)
     make_main(args, name, model.completions)
 
